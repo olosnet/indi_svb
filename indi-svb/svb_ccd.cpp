@@ -96,7 +96,7 @@ static class Loader
 
                 std::string make(const SVB_CAMERA_INFO &cameraInfo)
                 {
-                    std::string cameraName = "SVBONY " + std::string(cameraInfo.FriendlyName + 4);
+                    std::string cameraName = "SVBONY " + std::string(cameraInfo.FriendlyName);
                     std::string uniqueName = cameraName;
 
                     for (int index = 0; used[uniqueName] == true; )
