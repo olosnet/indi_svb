@@ -193,7 +193,7 @@ void SVBDevice::resetCaptureModeAndRoi(SVB_CAMERA_MODE mode) {
 void SVBDevice::workerExposure(const std::atomic_bool &isAboutToQuit, float duration)
 {
 
-    workaroundExposure(1);
+    workaroundExposure(0.5);
 
     PrimaryCCD.setExposureDuration(duration);
 
@@ -206,7 +206,6 @@ void SVBDevice::workerExposure(const std::atomic_bool &isAboutToQuit, float dura
         PrimaryCCD.setExposureFailed();
         return;
     }
-
 
     if (duration > VERBOSE_EXPOSURE)
         LOGF_INFO("Taking a %g seconds frame...", duration);

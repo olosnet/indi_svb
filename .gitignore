@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+config.h
+indi_svb.xml
+install_manifest.txt
+indi_svb_ccd

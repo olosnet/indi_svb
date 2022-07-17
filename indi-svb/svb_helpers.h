@@ -98,6 +98,32 @@ inline const char *toString(SVB_IMG_TYPE type)
     }
 }
 
+inline const char* toString(SVB_CONTROL_TYPE type)
+{
+    switch(type)
+    {
+	    case SVB_GAIN: return "SVB_GAIN";
+	    case SVB_EXPOSURE: return "SVB_EXPOSURE";
+	    case SVB_GAMMA: return "SVB_GAMMA";
+	    case SVB_GAMMA_CONTRAST: return "SVB_GAMMA_CONTRAST";
+	    case SVB_WB_R: return "SVB_WB_R";
+	    case SVB_WB_G: return "SVB_WB_G";
+	    case SVB_WB_B: return "SVB_WB_B";
+	    case SVB_FLIP: return "SVB_FLIP";
+	    case SVB_FRAME_SPEED_MODE: return "SVB_FRAME_SPEED_MODE";
+	    case SVB_CONTRAST: return "SVB_CONTRAST";
+	    case SVB_SHARPNESS: return "SVB_SHARPNESS";
+	    case SVB_SATURATION: return "SVB_SATURATION";
+	    case SVB_AUTO_TARGET_BRIGHTNESS: return "SVB_AUTO_TARGET_BRIGHTNESS";
+	    case SVB_BLACK_LEVEL: return "SVB_BLACK_LEVEL";
+	    case SVB_COOLER_ENABLE: return "SVB_COOLER_ENABLE";
+	    case SVB_TARGET_TEMPERATURE: return "SVB_TARGET_TEMPERATURE";
+	    case SVB_CURRENT_TEMPERATURE: return "SVB_CURRENT_TEMPERATURE";
+	    case SVB_COOLER_POWER: return "SVB_COOLER_POWER";
+        default:             return "UNKNOWN";
+    }
+}
+
 
 inline const char *toPrettyString(SVB_IMG_TYPE type)
 {

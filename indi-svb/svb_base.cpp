@@ -23,9 +23,6 @@
 #include "svb_helpers.h"
 #include <unistd.h>
 
-#define CONTROL_TAB "Controls"
-
-
 SVBBase::SVBBase()
 {
     setVersion(SVB_VERSION_MAJOR, SVB_VERSION_MINOR);
@@ -89,11 +86,16 @@ bool SVBBase::Connect()
         return false;
     }
 
+    status = SVBSetAutoSaveParam(mCameraInfo.CameraID, SVB_FALSE);
+    if (status != SVB_SUCCESS)
+    {
+        LOGF_ERROR("Error, set autosave param failed (%s)", Helpers::toString(status));
+    }
+
 
     // fix for SDK gain error issue
     // set exposure time
     SVBSetControlValue(mCameraInfo.CameraID, SVB_EXPOSURE, (long)(1 * 1000000L), SVB_FALSE);
-
 
     // Create controls
     auto r = createControls(controlsNum);
@@ -286,8 +288,6 @@ bool SVBBase::createControls(int piNumberOfControls)
 {
     SVB_ERROR_CODE status;
 
-    LOGF_INFO("Camera ID: %d", mCameraInfo.CameraID);
-    LOGF_INFO("Nr of controls: %d", piNumberOfControls);
     // read controls and feed UI
     for (int i = 0; i < piNumberOfControls; i++)
     {
@@ -498,10 +498,10 @@ bool SVBBase::updateControl(int ControlType, SVB_CONTROL_TYPE SVB_Control, doubl
     auto status = SVBSetControlValue(mCameraInfo.CameraID, SVB_Control, ControlsN[ControlType].value, SVB_FALSE);
     if(status != SVB_SUCCESS)
     {
-        LOGF_ERROR("Error, camera set control %d failed (%s)", ControlType, Helpers::toString(status));
+        LOGF_ERROR("Error, camera set control %s failed (%s)", Helpers::toString(SVB_Control), Helpers::toString(status));
         return false;
     }
-    LOGF_INFO("Camera control %d to %.f\n", ControlType, ControlsN[ControlType].value);
+    LOGF_INFO("Camera control %s to %.f\n", Helpers::toString(SVB_Control), ControlsN[ControlType].value);
 
 
     ControlsNP[ControlType].s = IPS_OK;
