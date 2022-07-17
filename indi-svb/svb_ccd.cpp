@@ -3,6 +3,12 @@
 
     Copyright (C) 2022 Valerio Faiuolo (valerio.faiuolo@gmail.com)
 
+    Based on indi-sv305 driver:
+        - Jasem Mutlaq  (mutlaqja AT ikarustech DOT com) : generic-ccd skeleton
+        - Blaise-Florentin Collin  (thx8411 AT yahoo DOT fr) : main coding
+        - Tetsuya Kakura (jcpgm AT outlook DOT jp) : SV405CC support, fixes and code cleaning
+
+
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
