@@ -127,7 +127,7 @@ class SVBBase: public INDI::CCD
         int frameSpeed;
 
         // SDK Version
-        INDI::PropertyText    SDKVersionSP {1};
+        INDI::PropertyText SDKVersionSP {1};
 
         // output frame format
         // the camera is able to output RGB24, but not supported by INDI

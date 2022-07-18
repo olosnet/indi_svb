@@ -729,6 +729,7 @@ bool SVBBase::saveConfigItems(FILE *fp)
 
     // Controls
     IUSaveConfigNumber(fp, &ControlsNP[CCD_GAIN_N]);
+    IUSaveConfigNumber(fp, &ControlsNP[CCD_DOFFSET_N]);
     IUSaveConfigNumber(fp, &ControlsNP[CCD_CONTRAST_N]);
     IUSaveConfigNumber(fp, &ControlsNP[CCD_SHARPNESS_N]);
     IUSaveConfigNumber(fp, &ControlsNP[CCD_SATURATION_N]);
