@@ -527,6 +527,17 @@ bool SVBBase::updateControl(int ControlType, SVB_CONTROL_TYPE SVB_Control, doubl
     }
     LOGF_INFO("Camera control %s to %.f\n", Helpers::toString(SVB_Control), ControlsN[ControlType].value);
 
+    // For debug purposes
+    long currValue = 0;
+    SVB_BOOL bauto;
+    status = SVBGetControlValue(mCameraInfo.CameraID, SVB_Control, &currValue, &bauto);
+    if(status != SVB_SUCCESS)
+    {
+        LOGF_ERROR("Error, camera get control %s failed (%s)", Helpers::toString(SVB_Control), Helpers::toString(status));
+    }
+
+    LOGF_INFO("%s current value: %d, auto: %d", Helpers::toString(SVB_Control), currValue, bauto);
+
 
     ControlsNP[ControlType].s = IPS_OK;
     IDSetNumber(&ControlsNP[ControlType], nullptr);
@@ -776,7 +787,6 @@ bool SVBBase::saveConfigItems(FILE *fp)
     IUSaveConfigNumber(fp, &ControlsNP[CCD_WBG_N]);
     IUSaveConfigNumber(fp, &ControlsNP[CCD_WBB_N]);
     IUSaveConfigNumber(fp, &ControlsNP[CCD_GAMMA_N]);
-    IUSaveConfigNumber(fp, &ControlsNP[CCD_DOFFSET_N]);
 
     // Frame format
     IUSaveConfigSwitch(fp, &FormatSP);
