@@ -194,7 +194,7 @@ bool SVBTemperature::Connect() {
 
     auto r = SVBBase::Connect();
 
-    if(r) {
+    if(r && HasCooler()) {
         mTimerTemperature.callOnTimeout(std::bind(&SVBTemperature::temperatureTimerTimeout, this));
         mTimerTemperature.start(TEMP_TIMER_MS);
     }
@@ -203,7 +203,10 @@ bool SVBTemperature::Connect() {
 }
 
 bool SVBTemperature::Disconnect() {
-    mTimerTemperature.stop();
+
+    if (HasCooler()) {
+        mTimerTemperature.stop();
+    }
     return SVBBase::Disconnect();
 }
 
