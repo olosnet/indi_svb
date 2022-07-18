@@ -75,6 +75,8 @@ bool SVBBase::Connect()
         return false;
     }
 
+
+
     // get camera pixel size
     status = SVBGetSensorPixelSize(mCameraInfo.CameraID, &pixelSize);
     if (status != SVB_SUCCESS)
@@ -102,7 +104,7 @@ bool SVBBase::Connect()
     // fix for SDK gain error issue
     // set exposure time
     SVBSetControlValue(mCameraInfo.CameraID, SVB_EXPOSURE, (long)(1 * 1000000L), SVB_FALSE);
-
+    SVBSetControlValue(mCameraInfo.CameraID, SVB_AUTO_TARGET_BRIGHTNESS, 0, SVB_FALSE);
     // Create controls
     auto r = createControls(controlsNum);
     if(!r) return false;
