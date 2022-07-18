@@ -197,7 +197,8 @@ void SVBDevice::resetCaptureModeAndRoi(SVB_CAMERA_MODE mode)
 }
 
 void SVBDevice::workerExposure(const std::atomic_bool &isAboutToQuit, float duration)
-{
+{   
+
     if (exposureWorkaroundEnable && exposureWorkaroundDuration > 0)
         workaroundExposure(0.5);
 

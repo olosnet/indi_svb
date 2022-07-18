@@ -501,10 +501,10 @@ bool SVBBase::createControls(int piNumberOfControls)
 
     IUFillSwitch(&SpeedS[SPEED_SLOW], "SPEED_SLOW", "Slow", ISS_OFF);
 
-    WorkaroundExpSP[0].fill("WORKAROUND_ON",  "ON",  ISS_ON);
-    WorkaroundExpSP[1].fill("WORKAROUND_OFF", "OFF", ISS_OFF);
+    WorkaroundExpSP[0].fill("WORKAROUND_ON",  "ON",  ISS_OFF);
+    WorkaroundExpSP[1].fill("WORKAROUND_OFF", "OFF", ISS_ON);
     WorkaroundExpSP.fill(getDeviceName(), "EXP_WOKAROUND", "ExpWorkaround", "Extra", IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
-    WorkaroundExpNP[0].fill("WORKAROUND_DURATION", "Duration", "%2.3f", 0.1,  60, 0.001, 0.5);
+    WorkaroundExpNP[0].fill("WORKAROUND_DURATION", "Duration", "%.2f", 0.1,  60, 0.001, 0.5);
     WorkaroundExpNP.fill(getDeviceName(), "EXP_WOKAROUND_DURATION", "ExpWorkaround", "Extra", IP_RW, 60, IPS_IDLE);
 
 
@@ -595,10 +595,10 @@ bool SVBBase::ISNewNumber(const char *dev, const char *name, double values[], ch
 
     if (WorkaroundExpNP.isNameMatch(name))
     {
-        exposureWorkaroundDuration = WorkaroundExpNP[0].getValue();
         WorkaroundExpNP.update(values, names, n);
         WorkaroundExpNP.setState(IPS_OK);
         WorkaroundExpNP.apply();
+        exposureWorkaroundDuration = WorkaroundExpNP[0].getValue();
         return true;
     }
 
@@ -747,10 +747,11 @@ bool SVBBase::ISNewSwitch(const char *dev, const char *name, ISState *states, ch
         // Exposure workaround enable
         if (WorkaroundExpSP.isNameMatch(name))
         {
-            exposureWorkaroundDuration = WorkaroundExpSP[0].getState() == ISS_ON;
             WorkaroundExpSP.update(states, names, n);
             WorkaroundExpSP.setState(IPS_OK);
             WorkaroundExpSP.apply();
+            LOGF_INFO("State: %d", WorkaroundExpSP[0].getState());
+            exposureWorkaroundEnable = WorkaroundExpSP[0].getState() == ISS_ON;
             return true;
         }
 
