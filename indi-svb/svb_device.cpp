@@ -38,15 +38,16 @@
 #include <map>
 #include <unistd.h>
 
-#define MAX_EXP_RETRIES  3
+#define MAX_EXP_RETRIES 3
 #define VERBOSE_EXPOSURE 3
 
-
-SVBDevice::SVBDevice() {
+SVBDevice::SVBDevice()
+{
     SVBTemperature();
 }
 
-SVBDevice::~SVBDevice() {
+SVBDevice::~SVBDevice()
+{
     mWorker.quit();
 }
 
@@ -57,7 +58,7 @@ void SVBDevice::workerStreamVideo(const std::atomic_bool &isAboutToQuit)
     // stream init
     // NOTE : SV305M is MONO
     // if binning, no more bayer
-    if(strcmp(mCameraInfo.FriendlyName, "SVBONY SV305M PRO") == 0 || isBinningActive())
+    if (strcmp(mCameraInfo.FriendlyName, "SVBONY SV305M PRO") == 0 || isBinningActive())
     {
         Streamer->setPixelFormat(INDI_MONO, bitDepth);
     }
@@ -68,13 +69,13 @@ void SVBDevice::workerStreamVideo(const std::atomic_bool &isAboutToQuit)
     Streamer->setSize(PrimaryCCD.getSubW() / PrimaryCCD.getBinX(), PrimaryCCD.getSubH() / PrimaryCCD.getBinY());
 
     double ExposureRequest = 1.0 / Streamer->getTargetFPS();
-    long uSecs             = static_cast<long>(ExposureRequest * 950000.0);
+    long uSecs = static_cast<long>(ExposureRequest * 950000.0);
 
     // stop camera
     auto ret = SVBStopVideoCapture(mCameraInfo.CameraID);
-    if(ret != SVB_SUCCESS)
+    if (ret != SVB_SUCCESS)
     {
-        LOGF_ERROR("Error, stop camera failed  (%s).", Helpers::toString(ret) );
+        LOGF_ERROR("Error, stop camera failed  (%s).", Helpers::toString(ret));
     }
 
     ret = SVBSetControlValue(mCameraInfo.CameraID, SVB_EXPOSURE, uSecs, SVB_FALSE);
@@ -85,16 +86,15 @@ void SVBDevice::workerStreamVideo(const std::atomic_bool &isAboutToQuit)
 
     // set ROI back
     ret = SVBSetROIFormat(mCameraInfo.CameraID, x_offset, y_offset, PrimaryCCD.getSubW(), PrimaryCCD.getSubH(), 1);
-    if(ret != SVB_SUCCESS)
+    if (ret != SVB_SUCCESS)
     {
         LOGF_ERROR("Error, camera set subframe failed (%s).", Helpers::toString(ret));
     }
     LOG_INFO("Subframe set\n");
 
-
     // set camera normal mode
     ret = SVBSetCameraMode(mCameraInfo.CameraID, SVB_MODE_NORMAL);
-    if(ret != SVB_SUCCESS)
+    if (ret != SVB_SUCCESS)
     {
         LOGF_ERROR("Error, camera normal mode failed (%s).", Helpers::toString(ret));
     }
@@ -109,8 +109,8 @@ void SVBDevice::workerStreamVideo(const std::atomic_bool &isAboutToQuit)
     while (!isAboutToQuit)
     {
         uint8_t *imageBuffer = PrimaryCCD.getFrameBuffer();
-        uint32_t totalBytes  = PrimaryCCD.getFrameBufferSize();
-        int waitMS           = static_cast<int>((ExposureRequest * 2000.0) + 500);
+        uint32_t totalBytes = PrimaryCCD.getFrameBufferSize();
+        int waitMS = static_cast<int>((ExposureRequest * 2000.0) + 500);
 
         std::unique_lock<std::mutex> guard(ccdBufferLock);
         ret = SVBGetVideoData(mCameraInfo.CameraID, imageBuffer, totalBytes, waitMS);
@@ -145,7 +145,6 @@ void SVBDevice::workerStreamVideo(const std::atomic_bool &isAboutToQuit)
         Streamer->newFrame(imageBuffer, totalBytes);
         guard.unlock();
     }
-
 }
 
 bool SVBDevice::StartStreaming()
@@ -164,17 +163,18 @@ bool SVBDevice::StopStreaming()
     return true;
 }
 
-void SVBDevice::resetCaptureModeAndRoi(SVB_CAMERA_MODE mode) {
+void SVBDevice::resetCaptureModeAndRoi(SVB_CAMERA_MODE mode)
+{
     // stop camera
     auto status = SVBStopVideoCapture(mCameraInfo.CameraID);
-    if(status != SVB_SUCCESS)
+    if (status != SVB_SUCCESS)
     {
         LOGF_ERROR("Error, stop camera failed (%s).", Helpers::toString(status));
     }
 
     // set camera back to trigger mode
     status = SVBSetCameraMode(mCameraInfo.CameraID, mode);
-    if(status != SVB_SUCCESS)
+    if (status != SVB_SUCCESS)
     {
         LOGF_ERROR("Error, camera mode %d failed (%s).", mode, Helpers::toString(status));
     }
@@ -182,7 +182,7 @@ void SVBDevice::resetCaptureModeAndRoi(SVB_CAMERA_MODE mode) {
 
     // set ROI back
     status = SVBSetROIFormat(mCameraInfo.CameraID, x_offset, y_offset, PrimaryCCD.getSubW(), PrimaryCCD.getSubH(), 1);
-    if(status != SVB_SUCCESS)
+    if (status != SVB_SUCCESS)
     {
         LOGF_ERROR("Error, camera set subframe failed (%s).", Helpers::toString(status));
     }
@@ -190,7 +190,7 @@ void SVBDevice::resetCaptureModeAndRoi(SVB_CAMERA_MODE mode) {
 
     // start camera
     status = SVBStartVideoCapture(mCameraInfo.CameraID);
-    if(status != SVB_SUCCESS)
+    if (status != SVB_SUCCESS)
     {
         LOGF_ERROR("Error, start camera failed (%s).", Helpers::toString(status));
     }
@@ -198,8 +198,8 @@ void SVBDevice::resetCaptureModeAndRoi(SVB_CAMERA_MODE mode) {
 
 void SVBDevice::workerExposure(const std::atomic_bool &isAboutToQuit, float duration)
 {
-
-    workaroundExposure(0.5);
+    if (exposureWorkaroundEnable && exposureWorkaroundDuration > 0)
+        workaroundExposure(0.5);
 
     PrimaryCCD.setExposureDuration(duration);
 
@@ -216,6 +216,13 @@ void SVBDevice::workerExposure(const std::atomic_bool &isAboutToQuit, float dura
     if (duration > VERBOSE_EXPOSURE)
         LOGF_INFO("Taking a %g seconds frame...", duration);
 
+    ret = SVBSetControlValue(mCameraInfo.CameraID, SVB_BLACK_LEVEL, 30, SVB_FALSE);
+    if (ret != SVB_SUCCESS)
+    {
+        LOGF_ERROR("Failed to set offset (%s).", Helpers::toString(ret));
+        PrimaryCCD.setExposureFailed();
+        return;
+    }
 
     ret = SVBSendSoftTrigger(mCameraInfo.CameraID);
     if (ret != SVB_SUCCESS)
@@ -226,9 +233,9 @@ void SVBDevice::workerExposure(const std::atomic_bool &isAboutToQuit, float dura
     }
 
     SVB_ERROR_CODE status;
-    uint8_t *imageBuffer  = nullptr;
+    uint8_t *imageBuffer = nullptr;
 
-    usleep(duration*1000 * 1000);
+    usleep(duration * 1000 * 1000);
     do
     {
         if (isAboutToQuit)
@@ -271,15 +278,15 @@ void SVBDevice::workerExposure(const std::atomic_bool &isAboutToQuit, float dura
 
 void SVBDevice::workaroundExposure(float duration)
 {
-    long uSecs = static_cast<long>(duration *1000 * 1000);
-    int waitMS           = static_cast<int>((duration * 2000.0) + 500);
+    long uSecs = static_cast<long>(duration * 1000 * 1000);
+    int waitMS = static_cast<int>((duration * 2000.0) + 500);
 
     // stop camera
     auto ret = SVBStopVideoCapture(mCameraInfo.CameraID);
 
-    if(ret != SVB_SUCCESS)
+    if (ret != SVB_SUCCESS)
     {
-        LOGF_ERROR("Error, stop camera failed  (%s).", Helpers::toString(ret) );
+        LOGF_ERROR("Error, stop camera failed  (%s).", Helpers::toString(ret));
     }
 
     ret = SVBSetControlValue(mCameraInfo.CameraID, SVB_EXPOSURE, uSecs, SVB_FALSE);
@@ -290,7 +297,7 @@ void SVBDevice::workaroundExposure(float duration)
 
     // set camera normal mode
     ret = SVBSetCameraMode(mCameraInfo.CameraID, SVB_MODE_NORMAL);
-    if(ret != SVB_SUCCESS)
+    if (ret != SVB_SUCCESS)
     {
         LOGF_ERROR("Error, camera normal mode failed (%s).", Helpers::toString(ret));
     }
@@ -298,7 +305,7 @@ void SVBDevice::workaroundExposure(float duration)
 
     // set ROI back
     ret = SVBSetROIFormat(mCameraInfo.CameraID, x_offset, y_offset, PrimaryCCD.getSubW(), PrimaryCCD.getSubH(), 1);
-    if(ret != SVB_SUCCESS)
+    if (ret != SVB_SUCCESS)
     {
         LOGF_ERROR("Error, camera set subframe failed (%s).", Helpers::toString(ret));
     }
@@ -312,7 +319,7 @@ void SVBDevice::workaroundExposure(float duration)
 
     // set ROI back
     ret = SVBSetROIFormat(mCameraInfo.CameraID, x_offset, y_offset, PrimaryCCD.getSubW(), PrimaryCCD.getSubH(), 1);
-    if(ret != SVB_SUCCESS)
+    if (ret != SVB_SUCCESS)
     {
         LOGF_ERROR("Error, camera set subframe failed (%s).", Helpers::toString(ret));
     }
@@ -340,7 +347,6 @@ void SVBDevice::workaroundExposure(float duration)
             return;
         }
 
-
         usleep(100);
     } while (ret != SVB_SUCCESS);
 
@@ -353,7 +359,7 @@ void SVBDevice::workerTimerExposure(const std::atomic_bool &isAboutToQuit, float
 
     do
     {
-        float delay    = 0.1;
+        float delay = 0.1;
         float timeLeft = std::max(duration - exposureTimer.elapsed() / 1000.0, 0.0);
 
         /*
@@ -367,7 +373,7 @@ void SVBDevice::workerTimerExposure(const std::atomic_bool &isAboutToQuit, float
          */
         if (timeLeft > 1.1)
         {
-            delay    = std::max(timeLeft - std::trunc(timeLeft), 0.005f);
+            delay = std::max(timeLeft - std::trunc(timeLeft), 0.005f);
             timeLeft = std::round(timeLeft);
         }
 
@@ -383,7 +389,6 @@ void SVBDevice::workerTimerExposure(const std::atomic_bool &isAboutToQuit, float
 
     } while (inExposure);
 }
-
 
 bool SVBDevice::StartExposure(float duration)
 {
@@ -408,7 +413,6 @@ bool SVBDevice::StartExposure(float duration)
     mExposureTimerWorker.start(std::bind(&SVBDevice::workerTimerExposure, this, std::placeholders::_1, c_exp));
 
     return true;
-
 }
 
 bool SVBDevice::AbortExposure()
@@ -476,4 +480,3 @@ bool SVBDevice::isBinningActive()
 {
     return PrimaryCCD.getBinX() > 1;
 }
-

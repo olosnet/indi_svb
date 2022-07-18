@@ -249,6 +249,7 @@ bool SVBBase::updateProperties()
         defineProperty(&ControlsNP[CCD_GAMMA_N]);
         defineProperty(&ControlsNP[CCD_DOFFSET_N]);
 
+
         // define frame format
         defineProperty(&FormatSP);
         // define frame rate
@@ -259,6 +260,9 @@ bool SVBBase::updateProperties()
         // SDK version
         defineProperty(SDKVersionSP);
 
+        // Workaround settings
+        defineProperty(WorkaroundExpSP);
+        defineProperty(WorkaroundExpNP);
     }
     else
     {
@@ -284,6 +288,11 @@ bool SVBBase::updateProperties()
 
         // sdk version
         deleteProperty(SDKVersionSP.getName());
+
+        // Workaround settings
+        deleteProperty(WorkaroundExpSP.getName());
+        deleteProperty(WorkaroundExpNP.getName());
+
 
     }
 
@@ -490,6 +499,15 @@ bool SVBBase::createControls(int piNumberOfControls)
     SDKVersionSP[0].fill("VERSION", "Version", SVBGetSDKVersion());
     SDKVersionSP.fill(getDeviceName(), "SDK", "SDK", INFO_TAB, IP_RO, 60, IPS_IDLE);
 
+    IUFillSwitch(&SpeedS[SPEED_SLOW], "SPEED_SLOW", "Slow", ISS_OFF);
+
+    WorkaroundExpSP[0].fill("WORKAROUND_ON",  "ON",  ISS_ON);
+    WorkaroundExpSP[1].fill("WORKAROUND_OFF", "OFF", ISS_OFF);
+    WorkaroundExpSP.fill(getDeviceName(), "EXP_WOKAROUND", "ExpWorkaround", "Extra", IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
+    WorkaroundExpNP[0].fill("WORKAROUND_DURATION", "Duration", "%2.3f", 0.1,  60, 0.001, 0.5);
+    WorkaroundExpNP.fill(getDeviceName(), "EXP_WOKAROUND_DURATION", "ExpWorkaround", "Extra", IP_RW, 60, IPS_IDLE);
+
+
 
     return true;
 
@@ -573,6 +591,15 @@ bool SVBBase::ISNewNumber(const char *dev, const char *name, double values[], ch
     if (!strcmp(name, ControlsNP[CCD_DOFFSET_N].name))
     {
         return updateControl(CCD_DOFFSET_N, SVB_BLACK_LEVEL, values, names, n);
+    }
+
+    if (WorkaroundExpNP.isNameMatch(name))
+    {
+        exposureWorkaroundDuration = WorkaroundExpNP[0].getValue();
+        WorkaroundExpNP.update(values, names, n);
+        WorkaroundExpNP.setState(IPS_OK);
+        WorkaroundExpNP.apply();
+        return true;
     }
 
     return INDI::CCD::ISNewNumber(dev, name, values, names, n);
@@ -716,6 +743,17 @@ bool SVBBase::ISNewSwitch(const char *dev, const char *name, ISState *states, ch
             IDSetSwitch(&StretchSP, NULL);
             return true;
         }
+
+        // Exposure workaround enable
+        if (WorkaroundExpSP.isNameMatch(name))
+        {
+            exposureWorkaroundDuration = WorkaroundExpSP[0].getState() == ISS_ON;
+            WorkaroundExpSP.update(states, names, n);
+            WorkaroundExpSP.setState(IPS_OK);
+            WorkaroundExpSP.apply();
+            return true;
+        }
+
     }
 
     // If we did not process the switch, let us pass it to the parent class to process it

@@ -120,6 +120,9 @@ class SVBBase: public INDI::CCD
         INumber ControlsN[9];
         INumberVectorProperty ControlsNP[9];
 
+        INDI::PropertySwitch  WorkaroundExpSP {2};
+        INDI::PropertyNumber  WorkaroundExpNP {1};
+
         // frame speed
         ISwitch SpeedS[3];
         ISwitchVectorProperty SpeedSP;
@@ -139,5 +142,10 @@ class SVBBase: public INDI::CCD
         SVB_IMG_TYPE frameFormatMapping[4] = {SVB_IMG_RAW16, SVB_IMG_RAW8, SVB_IMG_Y16, SVB_IMG_Y8};
         int frameFormat;
         const char* bayerPatternMapping[4] = {"RGGB", "BGGR", "GRBG", "GBRG"};
+
+
+        // Exposure workaround
+        bool exposureWorkaroundEnable = false;
+        float exposureWorkaroundDuration = 0.5F;
 
 };
