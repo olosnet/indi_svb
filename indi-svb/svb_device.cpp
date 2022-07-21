@@ -217,14 +217,14 @@ void SVBDevice::workerExposure(const std::atomic_bool &isAboutToQuit, float dura
     if (duration > VERBOSE_EXPOSURE)
         LOGF_INFO("Taking a %g seconds frame...", duration);
 
-    
+        /*
     ret = SVBSetControlValue(mCameraInfo.CameraID, SVB_BLACK_LEVEL, 30, SVB_FALSE);
     if (ret != SVB_SUCCESS)
     {
         LOGF_ERROR("Failed to set offset (%s).", Helpers::toString(ret));
         PrimaryCCD.setExposureFailed();
         return;
-    }
+    }*/
 
     ret = SVBSendSoftTrigger(mCameraInfo.CameraID);
     if (ret != SVB_SUCCESS)
