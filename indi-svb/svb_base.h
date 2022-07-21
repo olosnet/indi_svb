@@ -148,4 +148,7 @@ class SVBBase: public INDI::CCD
         bool exposureWorkaroundEnable = false;
         float exposureWorkaroundDuration = 0.5F;
 
+        // Default control values
+        std::map<SVB_CONTROL_TYPE, long> defaultValues;
+
 };
